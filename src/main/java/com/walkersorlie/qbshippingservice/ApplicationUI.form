@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.walkersorlie.qbshippingservice.ApplicationUI">
+  <grid id="27dc6" binding="panelMain" layout-manager="GridBagLayout">
+    <constraints>
+      <xy x="8" y="7" width="1134" height="794"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <scrollpane id="77ce2" binding="scrollPaneProductTable">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="1" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="Product List" title-justification="2" title-position="2"/>
+        <children>
+          <component id="53667" class="javax.swing.JTable" binding="productTable" custom-create="true">
+            <constraints/>
+            <properties>
+              <fillsViewportHeight value="true"/>
+              <preferredScrollableViewportSize width="450" height="670"/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
+      <scrollpane id="20fe4" binding="scrollPaneComputeTable">
+        <constraints>
+          <grid row="2" column="2" row-span="1" col-span="2" vsize-policy="7" hsize-policy="1" anchor="8" fill="2" indent="0" use-parent-layout="false">
+            <minimum-size width="50" height="50"/>
+          </grid>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="Order" title-justification="2" title-position="2"/>
+        <children>
+          <component id="f9b5e" class="javax.swing.JTable" binding="computeTable" custom-create="true">
+            <constraints/>
+            <properties>
+              <fillsViewportHeight value="true"/>
+              <preferredScrollableViewportSize width="620" height="400"/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
+      <component id="a5e30" class="javax.swing.JButton" binding="addToCompute">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <text value="Make Order"/>
+        </properties>
+      </component>
+      <component id="5a916" class="javax.swing.JTextField" binding="shippingWeightTextField">
+        <constraints>
+          <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="4"/>
+        </properties>
+      </component>
+      <component id="6621" class="javax.swing.JTextField" binding="shippingCostTextField">
+        <constraints>
+          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="538" height="30"/>
+          </grid>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="4"/>
+        </properties>
+      </component>
+      <component id="56d19" class="javax.swing.JLabel" binding="shippingWeightLabel">
+        <constraints>
+          <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties>
+          <labelFor value="5a916"/>
+          <text value="Total Shipping Weight"/>
+        </properties>
+      </component>
+      <component id="734c1" class="javax.swing.JLabel" binding="shippingCostLabel">
+        <constraints>
+          <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="10"/>
+          <horizontalTextPosition value="11"/>
+          <labelFor value="6621"/>
+          <text value="Total Shipping Cost"/>
+        </properties>
+      </component>
+      <component id="239bc" class="javax.swing.JButton" binding="calculateOrder">
+        <constraints>
+          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties>
+          <text value="Calculate Order"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>
