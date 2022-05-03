@@ -10,24 +10,25 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import javax.swing.event.*;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringBootApplication
 @EnableMongoRepositories
 public class ApplicationUI extends JFrame {
 
-    private ProductRepository productRepository;
-
-    private final JFrame frame = new JFrame("QB Shipping Cost");
+    private final ProductRepository productRepository;
     private List<Product> productList;
     private ArrayList<Product> selectedItemsList;
     private JPanel panelMain;
     private JTable computeTable;
     private JTable productTable;
+    private TableRowSorter<ProductTableModel> productTableSorter;
     private JButton addToCompute;
     private JScrollPane scrollPaneProductTable;
     private JScrollPane scrollPaneComputeTable;
@@ -36,15 +37,18 @@ public class ApplicationUI extends JFrame {
     private JLabel shippingWeightLabel;
     private JLabel shippingCostLabel;
     private JButton calculateOrder;
+    private JTextField searchTextField;
+    private JLabel searchFieldLabel;
+    private EditItemDialog editItemDialogBox;
     private ListSelectionModel productTableSelectionModel;
 
     public ApplicationUI(ProductRepository productRepository) {
         this.productRepository = productRepository;
 
         $$$setupUI$$$();
-//        createUIComponents();
         createListeners();
 
+        JFrame frame = new JFrame("QB Shipping Costs");
         frame.setContentPane(panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
@@ -52,11 +56,12 @@ public class ApplicationUI extends JFrame {
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
         productList = productRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
 
         productTable = new JTable(new ProductTableModel(new ArrayList<>(productList)));
         productTable.getModel().addTableModelListener(new TableModelListenerCust());
+        productTableSorter = new TableRowSorter<>((ProductTableModel) productTable.getModel());
+        productTable.setRowSorter(productTableSorter);
 
         computeTable = new JTable(new ComputeTableModel(new ArrayList<>()));
 
@@ -73,28 +78,68 @@ public class ApplicationUI extends JFrame {
     }
 
     private void createListeners() {
-        System.out.println("createListeners");
+        searchTextField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                String str = searchTextField.getText();
+                if (str.trim().length() == 0) {
+                    productTableSorter.setRowFilter(null);
+                }
+                else
+                    productTableSorter.setRowFilter(RowFilter.regexFilter("(?i)" + str));    //(?i) case insensitive search
 
-        addToCompute.addActionListener(e -> {
-            System.out.println("buttonListener");
-//            ProductTableModel tm = (ProductTableModel) productTable.getModel();
-//            for (int i = 0; i < tm.getRowCount(); i++) {
-//                boolean selected = (boolean) tm.getValueAt(i, 1);
-////                System.out.println("test: " + selected == "true");
-//                System.out.println("selected: " + selected);
-//                if (selected)
-//                    selectedItemsList.add(tm.getProductAt(i));
-//            }
-//
-            System.out.println("selectedItemsList.size(): " + selectedItemsList.size());
-            computeTable.setModel(new ComputeTableModel(selectedItemsList));
-//            ComputeTableModel ct = (ComputeTableModel) computeTable.getModel();
-//            System.out.println(Arrays.toString(ct.getRow(0)));
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                String str = searchTextField.getText();
+                if (str.trim().length() == 0) {
+                    productTableSorter.setRowFilter(null);
+                } else
+                    productTableSorter.setRowFilter(RowFilter.regexFilter("(?i)" + str));
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
+
+        productTable.addMouseListener(new MouseInputAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    JTable target = (JTable) e.getSource();
+                    ProductTableModel tm = (ProductTableModel) target.getModel();
+                    int column = target.getSelectedColumn();
+
+                    if (column == 0) {  // only want to allow double click on the description column (column zero)
+                        int row = target.getSelectedRow();
+                        Product product = tm.getProductAt(row);
+                        editItemDialogBox = new EditItemDialog(productRepository, product);
+                        Product updatedProduct = editItemDialogBox.getUpdatedProduct();
+
+                        // now check if this item is in selectedItemsList
+                        // if it is, replace the item in selectedItemsList with updated item
+                        //then update computeTable table model to reflect changes
+                        if (selectedItemsList.stream()
+                                .map((Product::getId))
+                                .collect(Collectors.toList())
+                                .contains(updatedProduct.getId())) {
+
+                            for (int i = 0; i < selectedItemsList.size(); i++) {
+                                if (selectedItemsList.get(i).getId().equals(updatedProduct.getId())) {
+                                    selectedItemsList.set(i, updatedProduct);
+                                    computeTable.setModel(new ComputeTableModel(selectedItemsList));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         });
 
         calculateOrder.addActionListener(e -> {
-            System.out.println("calculateOrder");
-
             ComputeTableModel cm = (ComputeTableModel) computeTable.getModel();
             double totalOrderShippingCost = Double.parseDouble(shippingCostTextField.getText().strip());
             double totalOrderWeight = Double.parseDouble(shippingWeightTextField.getText().strip());
@@ -111,7 +156,6 @@ public class ApplicationUI extends JFrame {
                 double costPerItem = (totalItemWeight / totalOrderWeight) * totalOrderShippingCost;
                 cm.setValueAt(costPerItem, i, 4);
             }
-
         });
     }
 
@@ -225,8 +269,24 @@ public class ApplicationUI extends JFrame {
         gbc.gridy = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panelMain.add(calculateOrder, gbc);
+        searchTextField = new JTextField();
+        searchTextField.setText("");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panelMain.add(searchTextField, gbc);
+        searchFieldLabel = new JLabel();
+        searchFieldLabel.setText("Search Field");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        panelMain.add(searchFieldLabel, gbc);
         shippingWeightLabel.setLabelFor(shippingWeightTextField);
         shippingCostLabel.setLabelFor(shippingCostTextField);
+        searchFieldLabel.setLabelFor(searchTextField);
     }
 
     /**

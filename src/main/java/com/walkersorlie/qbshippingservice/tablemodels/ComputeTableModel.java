@@ -70,7 +70,7 @@ public class ComputeTableModel extends AbstractTableModel {
             products.get(rowIndex)[columnIndex] = aValue;
             fireTableCellUpdated(rowIndex, columnIndex);
         }
-        else if (aValue instanceof Double && (columnIndex == 2 || columnIndex == 3 || columnIndex == 4)) {
+        else if (aValue instanceof Double && columnIndex == 4) {
             products.get(rowIndex)[columnIndex] = aValue;
             fireTableCellUpdated(rowIndex, columnIndex);
         }
