@@ -1,5 +1,6 @@
 package com.walkersorlie.qbshippingservice;
 
+import com.walkersorlie.qbshippingservice.dialogs.EditItemDialog;
 import com.walkersorlie.qbshippingservice.entities.Product;
 import com.walkersorlie.qbshippingservice.repositories.ProductRepository;
 import com.walkersorlie.qbshippingservice.tablemodels.ComputeTableModel;
@@ -11,6 +12,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.*;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -52,29 +55,41 @@ public class ApplicationUI extends JFrame {
         frame.setContentPane(panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
     private void createUIComponents() {
         productList = productRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
 
-        productTable = new JTable(new ProductTableModel(new ArrayList<>(productList)));
+        productTable = new JTable(new ProductTableModel(new ArrayList<>(productList))) {
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component component = super.prepareRenderer(renderer, row, column);
+                int rendererWidth = component.getPreferredSize().width;
+                TableColumn tableColumn = getColumnModel().getColumn(column);
+                tableColumn.setPreferredWidth(Math.max(rendererWidth + getIntercellSpacing().width, tableColumn.getPreferredWidth()));
+                return component;
+            }
+        };
+
         productTable.getModel().addTableModelListener(new TableModelListenerCust());
         productTableSorter = new TableRowSorter<>((ProductTableModel) productTable.getModel());
         productTable.setRowSorter(productTableSorter);
 
-        computeTable = new JTable(new ComputeTableModel(new ArrayList<>()));
+        computeTable = new JTable(new ComputeTableModel(new ArrayList<>())) {
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component component = super.prepareRenderer(renderer, row, column);
+                int rendererWidth = component.getPreferredSize().width;
+                TableColumn tableColumn = getColumnModel().getColumn(column);
+                tableColumn.setPreferredWidth(Math.max(rendererWidth + getIntercellSpacing().width, tableColumn.getPreferredWidth()));
+                return component;
+            }
+        };
+
 
         selectedItemsList = new ArrayList<>();
-
-//        productTableSelectionModel = productTable.getSelectionModel();
-//        productTableSelectionModel.addListSelectionListener(new ListSelectionHandlerCust());
-
-
-//        this.jListProductsList.setListData(this.productList.stream()
-//                .map(Product::getDescription)
-//                .toArray(String[]::new));
-
     }
 
     private void createListeners() {
@@ -84,10 +99,8 @@ public class ApplicationUI extends JFrame {
                 String str = searchTextField.getText();
                 if (str.trim().length() == 0) {
                     productTableSorter.setRowFilter(null);
-                }
-                else
+                } else
                     productTableSorter.setRowFilter(RowFilter.regexFilter("(?i)" + str));    //(?i) case insensitive search
-
             }
 
             @Override
@@ -109,18 +122,18 @@ public class ApplicationUI extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     JTable target = (JTable) e.getSource();
-                    ProductTableModel tm = (ProductTableModel) target.getModel();
                     int column = target.getSelectedColumn();
 
                     if (column == 0) {  // only want to allow double click on the description column (column zero)
                         int row = target.getSelectedRow();
+                        ProductTableModel tm = (ProductTableModel) target.getModel();
                         Product product = tm.getProductAt(row);
                         editItemDialogBox = new EditItemDialog(productRepository, product);
                         Product updatedProduct = editItemDialogBox.getUpdatedProduct();
 
                         // now check if this item is in selectedItemsList
                         // if it is, replace the item in selectedItemsList with updated item
-                        //then update computeTable table model to reflect changes
+                        // then update computeTable table model to reflect changes
                         if (selectedItemsList.stream()
                                 .map((Product::getId))
                                 .collect(Collectors.toList())
@@ -160,7 +173,6 @@ public class ApplicationUI extends JFrame {
     }
 
     class TableModelListenerCust implements TableModelListener {
-
         @Override
         public void tableChanged(TableModelEvent e) {
             int row = e.getFirstRow();
@@ -194,12 +206,13 @@ public class ApplicationUI extends JFrame {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.weightx = 1.0;
+        gbc.weightx = 0.5;
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.VERTICAL;
         panelMain.add(scrollPaneProductTable, gbc);
         scrollPaneProductTable.setBorder(BorderFactory.createTitledBorder(null, "Product List", TitledBorder.CENTER, TitledBorder.TOP, null, null));
+        productTable.setAutoResizeMode(2);
         productTable.setFillsViewportHeight(true);
         productTable.setPreferredScrollableViewportSize(new Dimension(450, 670));
         scrollPaneProductTable.setViewportView(productTable);
@@ -208,12 +221,13 @@ public class ApplicationUI extends JFrame {
         gbc.gridx = 2;
         gbc.gridy = 2;
         gbc.gridwidth = 2;
-        gbc.weightx = 1.0;
+        gbc.weightx = 0.5;
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.VERTICAL;
         panelMain.add(scrollPaneComputeTable, gbc);
         scrollPaneComputeTable.setBorder(BorderFactory.createTitledBorder(null, "Order", TitledBorder.CENTER, TitledBorder.TOP, null, null));
+        computeTable.setAutoResizeMode(4);
         computeTable.setFillsViewportHeight(true);
         computeTable.setPreferredScrollableViewportSize(new Dimension(620, 400));
         scrollPaneComputeTable.setViewportView(computeTable);
@@ -296,25 +310,4 @@ public class ApplicationUI extends JFrame {
         return panelMain;
     }
 
-
-//    class ListSelectionHandlerCust implements ListSelectionListener {
-//
-//        @Override
-//        public void valueChanged(ListSelectionEvent e) {
-//            selectedItemsList = new ArrayList<>();
-//
-//            System.out.println("Adjusting: " + e.getValueIsAdjusting());
-//            ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-//
-//            for (Integer i : lsm.getSelectedIndices()) {
-//                selectedItemsList.add(productTableModel.getProductAt(i));
-//                System.out.println(selectedItemsList.get(i).getDescription());
-//                computeTableModel.setValueAt(productTableModel.getProductAt(i), i, 0);
-//            }
-//
-////            computeTable.setModel(new ProductTableModel(selectedItemsList));
-//
-//            System.out.println("computeTable row count: " + computeTableModel.getRowCount());
-//        }
-//    }
 }

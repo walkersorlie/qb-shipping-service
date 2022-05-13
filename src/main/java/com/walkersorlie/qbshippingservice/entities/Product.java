@@ -1,7 +1,9 @@
 package com.walkersorlie.qbshippingservice.entities;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.ArrayList;
 
@@ -15,13 +17,18 @@ public class Product {
     private Double weight;
     private ArrayList<String> orderInformationIds;
 
-    public Product(String id, String name, String description, Double cost, Double weight) {
+    @Indexed
+    @Field("product_cost")
+    private ArrayList<ProductCost> productCost;
+
+    public Product(String id, String name, String description, Double cost, Double weight, ArrayList<ProductCost> productCost) {
         super();
         this.id = id;
         this.name = name;
         this.description = description;
         this.cost = cost;
         this.weight = weight;
+        this.productCost = productCost == null ? new ArrayList<>() : productCost;
     }
 
     public String getId() {
@@ -55,6 +62,16 @@ public class Product {
     public void setCost(Double cost) {
         this.cost = cost;
     }
+
+    public ArrayList<ProductCost> getProductCosts() {
+        return productCost;
+    }
+
+    public void setProductCost(ArrayList<ProductCost> productCost) {
+        this.productCost = productCost;
+    }
+
+    public void addProductCost(ProductCost productCost) { this.productCost.add(productCost); }
 
     public Double getWeight() {
         return weight == null ? 0 : weight;
