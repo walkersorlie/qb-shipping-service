@@ -22,15 +22,33 @@ public class CustomProductRepositoryImpl implements CustomProductRepository {
     @Autowired
     MongoTemplate mongoTemplate;
 
+    /**
+     *
+     * @param descrpition: the description of the Product to find
+     * @return Product matching the description
+     */
     @Override
-    public Product findProduct(String descrpition) {
-        return null;
+    public Product findProductByDescription(String descrpition) {
+        Query query = new Query(Criteria.where("description").is(descrpition));
+        return mongoTemplate.findOne(query, Product.class);
     }
 
+    /**
+     *
+     * @param product: Product to update
+     * Updates all attributes of Product that can be changed:
+     *               cost
+     *               weight
+     *               productCost
+     * @return updated Product
+     */
     @Override
     public Product updateProduct(Product product) {
         Query query = new Query(Criteria.where("id").is(product.getId()));
-        UpdateDefinition update = new Update().set("cost", product.getCost()).set("weight", product.getWeight());
+        UpdateDefinition update = new Update().
+                set("cost", product.getCost()).
+                set("weight", product.getWeight()).
+                set("product_cost", product.getProductCosts());
 
         return mongoTemplate.update(Product.class)
                 .matching(query)
@@ -39,10 +57,19 @@ public class CustomProductRepositoryImpl implements CustomProductRepository {
                 .findAndModifyValue();
     }
 
+    /**
+     *
+     * @param product: Product to update
+     * @param productCost: ProductCost to add to Product
+     *                   Can only update "product_cost"
+     * @return updated Product
+     */
     @Override
     public Product updateProductProductCost(Product product, ProductCost productCost) {
         product.addProductCost(productCost);
 
+        // this creates a new array of "product_cost" each time
+        // maybe add productCost to array if not already there, or update if is already present?
         Query query = new Query(Criteria.where("id").is(product.getId()));
         UpdateDefinition update = new Update().set("product_cost", product.getProductCosts());
 
@@ -51,11 +78,6 @@ public class CustomProductRepositoryImpl implements CustomProductRepository {
                 .apply(update)
                 .withOptions(FindAndModifyOptions.options().returnNew(true))
                 .findAndModifyValue();
-    }
-
-    @Override
-    public void deleteProduct(Product product) {
-
     }
 
     @Override

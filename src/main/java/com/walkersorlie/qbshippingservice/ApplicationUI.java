@@ -2,6 +2,7 @@ package com.walkersorlie.qbshippingservice;
 
 import com.walkersorlie.qbshippingservice.dialogs.EditItemDialog;
 import com.walkersorlie.qbshippingservice.entities.Product;
+import com.walkersorlie.qbshippingservice.entities.ProductCost;
 import com.walkersorlie.qbshippingservice.repositories.ProductRepository;
 import com.walkersorlie.qbshippingservice.tablemodels.ComputeTableModel;
 import com.walkersorlie.qbshippingservice.tablemodels.ProductTableModel;
@@ -17,6 +18,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,7 +41,7 @@ public class ApplicationUI extends JFrame {
     private JTextField shippingWeightTextField;
     private JLabel shippingWeightLabel;
     private JLabel shippingCostLabel;
-    private JButton calculateOrder;
+    private JButton calculateOrderButton;
     private JTextField searchTextField;
     private JLabel searchFieldLabel;
     private EditItemDialog editItemDialogBox;
@@ -59,9 +61,14 @@ public class ApplicationUI extends JFrame {
         frame.setVisible(true);
     }
 
+    /**
+     * IntelliJ requires this method if in 'GUI Designer' in 'Settings', the 'Generate GUI into: Java Source Code'
+     * is selected
+     */
     private void createUIComponents() {
         productList = productRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
 
+        // creates the product table and sets the column width to the width of the data
         productTable = new JTable(new ProductTableModel(new ArrayList<>(productList))) {
             @Override
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -73,10 +80,11 @@ public class ApplicationUI extends JFrame {
             }
         };
 
-        productTable.getModel().addTableModelListener(new TableModelListenerCust());
+        productTable.getModel().addTableModelListener(new ProductTableModelListener());
         productTableSorter = new TableRowSorter<>((ProductTableModel) productTable.getModel());
         productTable.setRowSorter(productTableSorter);
 
+        // creates the compute table and sets the column width to the width of the data
         computeTable = new JTable(new ComputeTableModel(new ArrayList<>())) {
             @Override
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -88,11 +96,14 @@ public class ApplicationUI extends JFrame {
             }
         };
 
-
         selectedItemsList = new ArrayList<>();
     }
 
+    /**
+     * Creates listeners for components
+     */
     private void createListeners() {
+        // table sorter to filter the product table to show search results from search text field
         searchTextField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -117,6 +128,7 @@ public class ApplicationUI extends JFrame {
             }
         });
 
+        // opens a dialog to edit an item if the product description column is double clicked
         productTable.addMouseListener(new MouseInputAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -124,11 +136,12 @@ public class ApplicationUI extends JFrame {
                     JTable target = (JTable) e.getSource();
                     int column = target.getSelectedColumn();
 
-                    if (column == 0) {  // only want to allow double click on the description column (column zero)
+                    // only want to allow double click on the description column (column zero)
+                    if (column == 0) {
                         int row = target.getSelectedRow();
-                        ProductTableModel tm = (ProductTableModel) target.getModel();
-                        Product product = tm.getProductAt(row);
-                        editItemDialogBox = new EditItemDialog(productRepository, product);
+                        ProductTableModel productTableModel = (ProductTableModel) target.getModel();
+                        Product productToEdit = productTableModel.getProductAt(row);
+                        editItemDialogBox = new EditItemDialog(productRepository, productToEdit);
                         Product updatedProduct = editItemDialogBox.getUpdatedProduct();
 
                         // now check if this item is in selectedItemsList
@@ -152,41 +165,116 @@ public class ApplicationUI extends JFrame {
             }
         });
 
-        calculateOrder.addActionListener(e -> {
-            ComputeTableModel cm = (ComputeTableModel) computeTable.getModel();
-            double totalOrderShippingCost = Double.parseDouble(shippingCostTextField.getText().strip());
-            double totalOrderWeight = Double.parseDouble(shippingWeightTextField.getText().strip());
+        // calculates the cost per item for an order; includes shipping cost in calculation
+        calculateOrderButton.addActionListener(e -> {
+            try {
+                ComputeTableModel computeTableModel = (ComputeTableModel) computeTable.getModel();
+                double totalOrderShippingCost = Double.parseDouble(shippingCostTextField.getText().strip());
+                double totalOrderWeight = Double.parseDouble(shippingWeightTextField.getText().strip());
 
-            // calculate total weight for each item (quantity * weight)
-            // (item total weight / order total weight) * total shipping cost
+                // calculate total weight for each item (quantity * weight)
+                // (item total weight / order total weight) * total shipping cost
+                for (int rowIndex = 0; rowIndex < computeTableModel.getRowCount(); rowIndex++) {
+                    int quantity = (int) computeTableModel.getValueAt(rowIndex, 1);
+                    double computeTableProductCost = (double) computeTableModel.getValueAt(rowIndex, 2);
+                    double computeTableProductWeight = (double) computeTableModel.getValueAt(rowIndex, 3);
 
-            for (int i = 0; i < cm.getRowCount(); i++) {
-                int quantity = (int) cm.getValueAt(i, 1);
-                double cost = (double) cm.getValueAt(i, 2);
-                double weight = (double) cm.getValueAt(i, 3);
+                    double totalItemWeight = quantity * computeTableProductWeight;
+                    double costPerItem = (totalItemWeight / totalOrderWeight) * totalOrderShippingCost;
+                    computeTableModel.setValueAt(costPerItem, rowIndex, 4);
 
-                double totalItemWeight = quantity * weight;
-                double costPerItem = (totalItemWeight / totalOrderWeight) * totalOrderShippingCost;
-                cm.setValueAt(costPerItem, i, 4);
+                    // Product at the current row
+                    Product rowProduct = (Product) computeTableModel.getRow(rowIndex)[0];
+                    boolean updateRowProduct = false;
+
+                    // check if the cost of the product in the compute table is different than what is in the DB
+                    // if so, create new ProductCost entry
+                    if (computeTableProductCost != rowProduct.getCost()) {
+                        ProductCost productCost = new ProductCost(
+                                LocalDate.now().toString(),
+                                computeTableProductCost,
+                                rowProduct.getId());
+
+                        // replace old cost with new cost
+                        rowProduct.setCost(computeTableProductCost);
+
+                        // add productCost to rowProduct.productCost
+                        rowProduct.addProductCost(productCost);
+                        updateRowProduct = true;
+                    }
+
+                    // check if the weight of the product in compute table is different than what is in the DB
+                    if (computeTableProductWeight != rowProduct.getWeight()) {
+                        rowProduct.setWeight(computeTableProductWeight);
+                        updateRowProduct = true;
+                    }
+
+                    if (updateRowProduct) {
+                        // pass the product to DB save() method because either weight or product_cost was changed
+                        Product updatedRowProduct = productRepository.save(rowProduct);
+
+                        // replace the old Product at row rowIndex with the freshly updated Product from DB
+                        // this Product includes updated product_cost entities
+                        computeTableModel.setRow(rowIndex, new Object[]{
+                                updatedRowProduct,
+                                quantity,
+                                updatedRowProduct.getCost(),
+                                updatedRowProduct.getWeight(),
+                                costPerItem
+                        });
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                String message;
+                JTextField textFieldToRequestFocus;
+
+                if (shippingCostTextField.getText().isBlank()) {
+                    message = "Enter a valid shipping cost";
+                    textFieldToRequestFocus = shippingCostTextField;
+                } else {
+                    message = "Enter a valid order weight";
+                    textFieldToRequestFocus = shippingWeightTextField;
+                }
+
+                JOptionPane.showMessageDialog(null, message);
+                textFieldToRequestFocus.requestFocus();
             }
         });
     }
 
-    class TableModelListenerCust implements TableModelListener {
+    /**
+     * Listener that listens to changes in productTable
+     * Adds products to selectedItemsList if the product checkbox is selected
+     * Meaning that the product is to be included in the order
+     */
+    class ProductTableModelListener implements TableModelListener {
         @Override
         public void tableChanged(TableModelEvent e) {
             int row = e.getFirstRow();
             int col = e.getColumn();
-            ProductTableModel tm = (ProductTableModel) e.getSource();
-            boolean selected = (boolean) tm.getValueAt(row, col);
+            ProductTableModel productTableModel = (ProductTableModel) e.getSource();
+            boolean productCheckboxIsSelected = (boolean) productTableModel.getValueAt(row, col);
+            boolean selectedItemsListIsUpdated = false;
 
-            if (selectedItemsList.contains(tm.getProductAt(row)) && !selected)
-                selectedItemsList.remove(tm.getProductAt(row));
+            // checks if the product was previously in selectedItemsList but is no longer in the list
+            // product checkbox was selected but is no longer selected
+            // if so, removes it from selectedItemsList
+            if (selectedItemsList.contains(productTableModel.getProductAt(row)) && !productCheckboxIsSelected) {
+                selectedItemsList.remove(productTableModel.getProductAt(row));
+                selectedItemsListIsUpdated = true;
+            }
 
-            if (selected)
-                selectedItemsList.add(tm.getProductAt(row));
+            // if the checkbox of the product is selected, adds product to selectedItemsList
+            if (productCheckboxIsSelected) {
+                selectedItemsList.add(productTableModel.getProductAt(row));
+                selectedItemsListIsUpdated = true;
+            }
 
-            computeTable.setModel(new ComputeTableModel(selectedItemsList));
+            // check if selectedItemsList is actually updated
+            if (selectedItemsListIsUpdated) {
+                // creates a new computeTableModel with the updated selectedItemsList
+                computeTable.setModel(new ComputeTableModel(selectedItemsList));
+            }
         }
     }
 
@@ -276,13 +364,13 @@ public class ApplicationUI extends JFrame {
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
         panelMain.add(shippingCostLabel, gbc);
-        calculateOrder = new JButton();
-        calculateOrder.setText("Calculate Order");
+        calculateOrderButton = new JButton();
+        calculateOrderButton.setText("Calculate Order");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panelMain.add(calculateOrder, gbc);
+        panelMain.add(calculateOrderButton, gbc);
         searchTextField = new JTextField();
         searchTextField.setText("");
         gbc = new GridBagConstraints();
@@ -309,5 +397,4 @@ public class ApplicationUI extends JFrame {
     public JComponent $$$getRootComponent$$$() {
         return panelMain;
     }
-
 }

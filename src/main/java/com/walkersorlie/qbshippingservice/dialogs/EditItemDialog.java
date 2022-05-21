@@ -4,14 +4,18 @@ import com.walkersorlie.qbshippingservice.entities.Product;
 import com.walkersorlie.qbshippingservice.entities.ProductCost;
 import com.walkersorlie.qbshippingservice.repositories.ProductRepository;
 import com.walkersorlie.qbshippingservice.tablemodels.ProductCostTableModel;
+import com.walkersorlie.qbshippingservice.tablemodels.ProductTableModel;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 public class EditItemDialog extends JDialog {
 
@@ -28,6 +32,7 @@ public class EditItemDialog extends JDialog {
     private JLabel weightLabel;
     private JTable productCostTable;
     private JButton addProductCostButton;
+    private JButton saveAndCloseButton;
     private AddProductCostDialog addProductCostDialog;
 
     public EditItemDialog(ProductRepository productRepository, Product product) {
@@ -50,9 +55,12 @@ public class EditItemDialog extends JDialog {
 
     }
 
+    /**
+     * IntelliJ requires this method if in 'GUI Designer' in 'Settings', the 'Generate GUI into: Java Source Code'
+     * is selected
+     */
     private void createUIComponents() {
         ArrayList<ProductCost> productCostArrayList = product.getProductCosts() != null ? product.getProductCosts() : new ArrayList<>();
-        System.out.println("productCost size: " + productCostArrayList.size());
         productCostTable = new JTable(new ProductCostTableModel(productCostArrayList)) {
             @Override
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -63,30 +71,103 @@ public class EditItemDialog extends JDialog {
                 return component;
             }
         };
+
+        // creates a table row sorter to sort the ProductCost entities by ascending date
+        TableRowSorter<ProductCostTableModel> sorter = new TableRowSorter<>((ProductCostTableModel) productCostTable.getModel());
+        List<RowSorter.SortKey> sortKeys = new ArrayList<>(1);
+        sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+        sorter.setSortKeys(sortKeys);
+        productCostTable.setRowSorter(sorter);
     }
 
+    /**
+     * Creates listeners for components
+     */
     private void createListeners() {
+        // closes the dialog without saving any potential changes to data
         cancelButton.addActionListener(e -> {
             EditItemDialog.this.setVisible(false);
             EditItemDialog.this.dispatchEvent(new WindowEvent(EditItemDialog.this, WindowEvent.WINDOW_CLOSING));
         });
 
+        // saves the changed data but does not close the window
         saveButton.addActionListener(e -> {
-            this.product.setCost(Double.parseDouble(costTextField.getText().strip()));
-            this.product.setWeight(Double.parseDouble(weightTextField.getText().strip()));
+            try {
+                this.product.setCost(Double.parseDouble(costTextField.getText().strip()));
+                this.product.setWeight(Double.parseDouble(weightTextField.getText().strip()));
 
-            // update the product record in the DB with the new cost and weight
-            this.product = productRepository.updateProduct(this.product);
-            EditItemDialog.this.setVisible(false);
-            EditItemDialog.this.dispatchEvent(new WindowEvent(EditItemDialog.this, WindowEvent.WINDOW_CLOSING));
+                ProductCost newCost = new ProductCost(LocalDate.now().toString(), this.product.getCost(), this.product.getId());
+                this.product.addProductCost(newCost);
+
+                // update the product record in the DB with the new cost and weight
+                this.product = productRepository.save(this.product);
+
+                // update productCost table with new record
+                productCostTable.setModel(new ProductCostTableModel(this.product.getProductCosts()));
+            } catch (NumberFormatException ex) {
+                String message;
+                JTextField textFieldToRequestFocus;
+
+                if (costTextField.getText().isBlank()) {
+                    message = "Enter a valid cost";
+                    textFieldToRequestFocus = costTextField;
+                } else {
+                    message = "Enter a valid weight";
+                    textFieldToRequestFocus = weightTextField;
+                }
+
+                JOptionPane.showMessageDialog(null, message);
+                textFieldToRequestFocus.requestFocus();
+            }
         });
 
+        // saves the changed data and then closes the dialog
+        saveAndCloseButton.addActionListener(e -> {
+            try {
+                this.product.setCost(Double.parseDouble(costTextField.getText().strip()));
+                this.product.setWeight(Double.parseDouble(weightTextField.getText().strip()));
+
+                ProductCost newCost = new ProductCost(LocalDate.now().toString(), this.product.getCost(), this.product.getId());
+                this.product.addProductCost(newCost);
+
+                // update the product record in the DB with the new cost and weight
+                this.product = productRepository.save(this.product);
+
+                // closes the dialog
+                EditItemDialog.this.setVisible(false);
+                EditItemDialog.this.dispatchEvent(new WindowEvent(EditItemDialog.this, WindowEvent.WINDOW_CLOSING));
+            } catch (NumberFormatException ex) {
+                String message;
+                JTextField textFieldToRequestFocus;
+
+                if (costTextField.getText().isBlank()) {
+                    message = "Enter a valid cost";
+                    textFieldToRequestFocus = costTextField;
+                } else {
+                    message = "Enter a valid weight";
+                    textFieldToRequestFocus = weightTextField;
+                }
+
+                JOptionPane.showMessageDialog(null, message);
+                textFieldToRequestFocus.requestFocus();
+            }
+        });
+
+        // opens a new dialog to add a product cost record to the Product
         addProductCostButton.addActionListener(e -> {
-            // create new ProductCost entry
-            // update productCostTable with new model
+            double oldProductCost = this.product.getCost();
             addProductCostDialog = new AddProductCostDialog(productRepository, this.product);
+
+            // gets updated product for the case that a product cost entry was added
             this.product = addProductCostDialog.getUpdatedProduct();
 
+            // if a ProductCost entity was added to this Product and the cost is the current cost of the Product
+            // set it in the text field
+            if (oldProductCost != this.product.getCost())
+                costTextField.setText(this.product.getCost().toString());
+
+            // check that the product has product cost entries
+            // default product.ProductCostEntries is a blank ArrayList
             if (this.product.getProductCosts() != null)
                 productCostTable.setModel(new ProductCostTableModel(this.product.getProductCosts()));
         });
@@ -139,7 +220,7 @@ public class EditItemDialog extends JDialog {
         cancelButton = new JButton();
         cancelButton.setText("Cancel");
         gbc = new GridBagConstraints();
-        gbc.gridx = 4;
+        gbc.gridx = 6;
         gbc.gridy = 9;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel1.add(cancelButton, gbc);
@@ -221,13 +302,13 @@ public class EditItemDialog extends JDialog {
         panel1.add(spacer7, gbc);
         final JPanel spacer8 = new JPanel();
         gbc = new GridBagConstraints();
-        gbc.gridx = 3;
+        gbc.gridx = 5;
         gbc.gridy = 9;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel1.add(spacer8, gbc);
         final JPanel spacer9 = new JPanel();
         gbc = new GridBagConstraints();
-        gbc.gridx = 5;
+        gbc.gridx = 7;
         gbc.gridy = 9;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel1.add(spacer9, gbc);
@@ -235,7 +316,7 @@ public class EditItemDialog extends JDialog {
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 7;
-        gbc.gridwidth = 4;
+        gbc.gridwidth = 6;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
@@ -251,10 +332,23 @@ public class EditItemDialog extends JDialog {
         addProductCostButton = new JButton();
         addProductCostButton.setText("Add Product Cost");
         gbc = new GridBagConstraints();
-        gbc.gridx = 5;
+        gbc.gridx = 7;
         gbc.gridy = 7;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel1.add(addProductCostButton, gbc);
+        saveAndCloseButton = new JButton();
+        saveAndCloseButton.setText("Save and close");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 9;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(saveAndCloseButton, gbc);
+        final JPanel spacer11 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 9;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(spacer11, gbc);
         costLabel.setLabelFor(costTextField);
         descriptionLabel.setLabelFor(descriptionTextField);
         weightLabel.setLabelFor(weightTextField);

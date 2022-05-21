@@ -98,7 +98,7 @@
           <text value="Total Shipping Cost"/>
         </properties>
       </component>
-      <component id="239bc" class="javax.swing.JButton" binding="calculateOrder">
+      <component id="239bc" class="javax.swing.JButton" binding="calculateOrderButton">
         <constraints>
           <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>

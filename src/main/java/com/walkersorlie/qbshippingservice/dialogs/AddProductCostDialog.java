@@ -9,9 +9,6 @@ import com.walkersorlie.qbshippingservice.repositories.ProductRepository;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
-import java.net.URL;
-import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.Objects;
 
 public class AddProductCostDialog extends JDialog {
@@ -25,6 +22,7 @@ public class AddProductCostDialog extends JDialog {
     private JButton cancelButton;
     private JPanel panel1;
     private DatePicker datePicker;
+    private JCheckBox isCurrentPriceCheckbox;
 
     public AddProductCostDialog(ProductRepository productRepository, Product product) {
         this.productRepository = productRepository;
@@ -41,12 +39,13 @@ public class AddProductCostDialog extends JDialog {
         this.setVisible(true);
     }
 
+    /**
+     * IntelliJ requires this method if in 'GUI Designer' in 'Settings', the 'Generate GUI into: Java Source Code'
+     * is selected
+     */
     private void createUIComponents() {
-        // TODO: place custom component creation code here
-
         DatePickerSettings datePickerSettings = new DatePickerSettings();
         datePickerSettings.setAllowEmptyDates(false);
-//        datePickerSettings.setDefaultYearMonth(YearMonth.now());
         datePicker = new DatePicker(datePickerSettings);
 
         ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/images/calendar.png")));
@@ -55,16 +54,29 @@ public class AddProductCostDialog extends JDialog {
         datePickerButton.setIcon(icon);
     }
 
+    /**
+     * Creates listeners for components
+     */
     private void createListeners() {
+        // saves the product cost data, updates Prodcut in DB with new product_cost record, then closed the dialog
         saveButton.addActionListener(e -> {
-            // create new product_cost entity
-            // save it here
             try {
                 String date = datePicker.getDate().toString();
                 Double cost = Double.parseDouble(costTextField.getText());
-                ProductCost productCost = new ProductCost(date, cost, product.getId());
-                this.product = productRepository.updateProductProductCost(product, productCost);
 
+                // if this new price should be set as the current price of the Product
+                if (isCurrentPriceCheckbox.isSelected())
+                    this.product.setCost(cost);
+
+                // create a product cost object from datePicker and costTextField
+                ProductCost productCost = new ProductCost(date, cost, product.getId());
+                this.product.addProductCost(productCost);
+
+                // pass the product and the product cost object just created to DB Update method
+//                this.product = productRepository.updateProductProductCost(product, productCost);
+                this.product = productRepository.save(this.product);
+
+                // closes the dialog
                 AddProductCostDialog.this.setVisible(false);
                 AddProductCostDialog.this.dispatchEvent(
                         new WindowEvent(AddProductCostDialog.this, WindowEvent.WINDOW_CLOSING)
@@ -75,6 +87,7 @@ public class AddProductCostDialog extends JDialog {
             }
         });
 
+        // closes the dialog without saving any potential data changes
         cancelButton.addActionListener(e -> {
             AddProductCostDialog.this.setVisible(false);
             AddProductCostDialog.this.dispatchEvent(
@@ -168,6 +181,13 @@ public class AddProductCostDialog extends JDialog {
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel1.add(spacer5, gbc);
+        isCurrentPriceCheckbox = new JCheckBox();
+        isCurrentPriceCheckbox.setText("Current Price");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 5;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel1.add(isCurrentPriceCheckbox, gbc);
         costLabel.setLabelFor(costTextField);
     }
 

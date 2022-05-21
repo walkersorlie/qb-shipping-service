@@ -8,6 +8,12 @@ import java.util.stream.Collectors;
 
 public class ComputeTableModel extends AbstractTableModel {
     private final String[] COLUMN_NAMES = {"Description", "Quantity", "Cost", "Weight", "Order Total"};
+
+    /**
+     * ArrayList of Arrays
+     * Each array is: [Product, quantity, cost, weight, order total]
+     * ex. [[Product, quantity, cost, weight, order total], [Product, quantity, cost, weight, order total]]
+     */
     private ArrayList<Object[]> products;
 
     public ComputeTableModel(ArrayList<Product> products) {
@@ -23,6 +29,10 @@ public class ComputeTableModel extends AbstractTableModel {
 
     public Object[] getRow(int rowIndex) {
         return products.get(rowIndex);
+    }
+
+    public void setRow(int rowIndex, Object[] rowData) {
+        products.set(rowIndex, rowData);
     }
 
     @Override
@@ -51,14 +61,8 @@ public class ComputeTableModel extends AbstractTableModel {
                 return product.getDescription();
             }
             case 1: return products.get(rowIndex)[1];
-            case 2: {
-                Product product = (Product) products.get(rowIndex)[0];
-                return product.getCost();
-            }
-            case 3: {
-                Product product = (Product) products.get(rowIndex)[0];
-                return product.getWeight();
-            }
+            case 2: return products.get(rowIndex)[2];
+            case 3: return products.get(rowIndex)[3];
             case 4: return products.get(rowIndex)[4];
             default: return null;
         }
@@ -66,7 +70,7 @@ public class ComputeTableModel extends AbstractTableModel {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        if (aValue instanceof Integer && columnIndex == 1) {
+        if ((aValue instanceof Integer || aValue instanceof Double) && isCellEditable(rowIndex, columnIndex)) {
             products.get(rowIndex)[columnIndex] = aValue;
             fireTableCellUpdated(rowIndex, columnIndex);
         }
