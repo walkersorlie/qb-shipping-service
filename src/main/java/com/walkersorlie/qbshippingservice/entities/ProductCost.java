@@ -2,6 +2,8 @@ package com.walkersorlie.qbshippingservice.entities;
 
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.Objects;
+
 public class ProductCost {
     private Double cost;
 
@@ -35,5 +37,18 @@ public class ProductCost {
 
     public String getDateCreated() {
         return dateCreated;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProductCost that = (ProductCost) o;
+        return cost.equals(that.cost) && productId.equals(that.productId) && dateCreated.equals(that.dateCreated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cost, productId, dateCreated);
     }
 }

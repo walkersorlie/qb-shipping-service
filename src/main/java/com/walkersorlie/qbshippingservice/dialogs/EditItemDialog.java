@@ -12,10 +12,13 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EditItemDialog extends JDialog {
 
@@ -84,6 +87,30 @@ public class EditItemDialog extends JDialog {
      * Creates listeners for components
      */
     private void createListeners() {
+        costTextField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                costTextField.selectAll();
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                costTextField.select(0, 0);
+            }
+        });
+
+        weightTextField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                weightTextField.selectAll();
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                weightTextField.select(0, 0);
+            }
+        });
+        
         // closes the dialog without saving any potential changes to data
         cancelButton.addActionListener(e -> {
             EditItemDialog.this.setVisible(false);
@@ -93,17 +120,41 @@ public class EditItemDialog extends JDialog {
         // saves the changed data but does not close the window
         saveButton.addActionListener(e -> {
             try {
-                this.product.setCost(Double.parseDouble(costTextField.getText().strip()));
-                this.product.setWeight(Double.parseDouble(weightTextField.getText().strip()));
+                boolean updateProduct = false;
+                boolean updateProductCostTableModel = false;
 
-                ProductCost newCost = new ProductCost(LocalDate.now().toString(), this.product.getCost(), this.product.getId());
-                this.product.addProductCost(newCost);
+                // check if the product cost was actually changed and therefore needs to be updated in DB
+                if (this.product.getCost() != Double.parseDouble(costTextField.getText().strip())) {
+                    // check if old price is in product cost entries
+                    // if so, creates an entry for the old cost
+                    if (!this.product.getProductCosts().stream()
+                            .map(ProductCost::getCost)
+                            .collect(Collectors.toList())
+                            .contains(this.product.getCost())
+                    ) {
+                        ProductCost oldCost = new ProductCost(LocalDate.now().toString(), this.product.getCost(), this.product.getId());
+                        this.product.addProductCost(oldCost);
+                    }
+
+                    this.product.setCost(Double.parseDouble(costTextField.getText().strip()));
+                    ProductCost newCost = new ProductCost(LocalDate.now().toString(), this.product.getCost(), this.product.getId());
+                    this.product.addProductCost(newCost);
+                    updateProduct = true;
+                    updateProductCostTableModel = true;
+                }
+
+                if (this.product.getWeight() != Double.parseDouble(weightTextField.getText().strip())) {
+                    this.product.setWeight(Double.parseDouble(weightTextField.getText().strip()));
+                    updateProduct = true;
+                }
 
                 // update the product record in the DB with the new cost and weight
-                this.product = productRepository.save(this.product);
+                if (updateProduct)
+                    this.product = productRepository.save(this.product);
 
                 // update productCost table with new record
-                productCostTable.setModel(new ProductCostTableModel(this.product.getProductCosts()));
+                if (updateProductCostTableModel)
+                    productCostTable.setModel(new ProductCostTableModel(this.product.getProductCosts()));
             } catch (NumberFormatException ex) {
                 String message;
                 JTextField textFieldToRequestFocus;
@@ -124,14 +175,35 @@ public class EditItemDialog extends JDialog {
         // saves the changed data and then closes the dialog
         saveAndCloseButton.addActionListener(e -> {
             try {
-                this.product.setCost(Double.parseDouble(costTextField.getText().strip()));
-                this.product.setWeight(Double.parseDouble(weightTextField.getText().strip()));
+                boolean updateProduct = false;
 
-                ProductCost newCost = new ProductCost(LocalDate.now().toString(), this.product.getCost(), this.product.getId());
-                this.product.addProductCost(newCost);
+                // check if the product cost was actually changed and therefore needs to be updated in DB
+                if (this.product.getCost() != Double.parseDouble(costTextField.getText().strip())) {
+                    // check if old price is in product cost entries
+                    // if so, creates an entry for the old cost
+                    if (!this.product.getProductCosts().stream()
+                            .map(ProductCost::getCost)
+                            .collect(Collectors.toList())
+                            .contains(this.product.getCost())
+                    ) {
+                        ProductCost oldCost = new ProductCost(LocalDate.now().toString(), this.product.getCost(), this.product.getId());
+                        this.product.addProductCost(oldCost);
+                    }
+
+                    this.product.setCost(Double.parseDouble(costTextField.getText().strip()));
+                    ProductCost newCost = new ProductCost(LocalDate.now().toString(), this.product.getCost(), this.product.getId());
+                    this.product.addProductCost(newCost);
+                    updateProduct = true;
+                }
+
+                if (this.product.getWeight() != Double.parseDouble(weightTextField.getText().strip())) {
+                    this.product.setWeight(Double.parseDouble(weightTextField.getText().strip()));
+                    updateProduct = true;
+                }
 
                 // update the product record in the DB with the new cost and weight
-                this.product = productRepository.save(this.product);
+                if (updateProduct)
+                    this.product = productRepository.save(this.product);
 
                 // closes the dialog
                 EditItemDialog.this.setVisible(false);

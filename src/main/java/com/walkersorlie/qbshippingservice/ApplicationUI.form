@@ -2,15 +2,15 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.walkersorlie.qbshippingservice.ApplicationUI">
   <grid id="27dc6" binding="panelMain" layout-manager="GridBagLayout">
     <constraints>
-      <xy x="8" y="7" width="1134" height="794"/>
+      <xy x="8" y="7" width="1203" height="839"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
       <scrollpane id="77ce2" binding="scrollPaneProductTable">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="1" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.5" weighty="1.0"/>
+          <grid row="2" column="1" row-span="1" col-span="11" vsize-policy="7" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="none" title="Product List" title-justification="2" title-position="2"/>
@@ -27,105 +27,263 @@
       </scrollpane>
       <scrollpane id="20fe4" binding="scrollPaneComputeTable">
         <constraints>
-          <grid row="2" column="2" row-span="1" col-span="2" vsize-policy="7" hsize-policy="1" anchor="8" fill="2" indent="0" use-parent-layout="false">
+          <grid row="2" column="13" row-span="1" col-span="7" vsize-policy="7" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <minimum-size width="50" height="50"/>
           </grid>
-          <gridbag weightx="0.5" weighty="1.0"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="none" title="Order" title-justification="2" title-position="2"/>
         <children>
-          <component id="f9b5e" class="javax.swing.JTable" binding="computeTable" custom-create="true">
+          <component id="f9b5e" class="com.walkersorlie.qbshippingservice.RXTable" binding="computeTable" custom-create="true">
             <constraints/>
             <properties>
-              <autoResizeMode value="4"/>
+              <autoResizeMode value="2"/>
               <fillsViewportHeight value="true"/>
-              <preferredScrollableViewportSize width="620" height="400"/>
+              <preferredScrollableViewportSize width="620" height="200"/>
             </properties>
           </component>
         </children>
       </scrollpane>
-      <component id="a5e30" class="javax.swing.JButton" binding="addToCompute">
+      <component id="797e6" class="javax.swing.JTextField" binding="searchTextField" default-binding="true">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <text value="Make Order"/>
-        </properties>
-      </component>
-      <component id="5a916" class="javax.swing.JTextField" binding="shippingWeightTextField">
-        <constraints>
-          <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
-          <gridbag weightx="1.0" weighty="1.0"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
+          <columns value="20"/>
           <horizontalAlignment value="4"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="2b71a" class="javax.swing.JLabel" binding="searchFieldLabel">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="11" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.05"/>
+        </constraints>
+        <properties>
+          <labelFor value="797e6"/>
+          <text value="Search Field"/>
+        </properties>
+      </component>
+      <component id="40752" class="javax.swing.JTextField" binding="subtotalTextField">
+        <constraints>
+          <grid row="1" column="13" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+          <gridbag weightx="0.25" weighty="0.1"/>
+        </constraints>
+        <properties>
+          <columns value="10"/>
+          <horizontalAlignment value="4"/>
+          <text value="0"/>
+        </properties>
+      </component>
+      <component id="734c1" class="javax.swing.JLabel" binding="shippingCostLabel">
+        <constraints>
+          <grid row="0" column="15" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.05"/>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="10"/>
+          <horizontalTextPosition value="11"/>
+          <labelFor value="6621"/>
+          <text value="Freight Cost"/>
         </properties>
       </component>
       <component id="6621" class="javax.swing.JTextField" binding="shippingCostTextField">
         <constraints>
-          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="1" column="15" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="538" height="30"/>
           </grid>
-          <gridbag weightx="1.0" weighty="1.0"/>
+          <gridbag weightx="0.25" weighty="0.1"/>
         </constraints>
         <properties>
+          <columns value="10"/>
           <horizontalAlignment value="4"/>
+          <text value="0"/>
+        </properties>
+      </component>
+      <component id="8b459" class="javax.swing.JLabel" binding="subtotalLabel">
+        <constraints>
+          <grid row="0" column="13" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.05"/>
+        </constraints>
+        <properties>
+          <labelFor value="40752"/>
+          <text value="Subtotal"/>
+        </properties>
+      </component>
+      <hspacer id="fb3b9">
+        <constraints>
+          <grid row="1" column="14" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="1bee3">
+        <constraints>
+          <grid row="2" column="12" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="3ff7">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <component id="5a916" class="javax.swing.JTextField" binding="shippingWeightTextField">
+        <constraints>
+          <grid row="1" column="17" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+          <gridbag weightx="0.25" weighty="0.1"/>
+        </constraints>
+        <properties>
+          <columns value="10"/>
+          <horizontalAlignment value="4"/>
+          <text value="0"/>
         </properties>
       </component>
       <component id="56d19" class="javax.swing.JLabel" binding="shippingWeightLabel">
         <constraints>
-          <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
+          <grid row="0" column="17" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.05"/>
         </constraints>
         <properties>
           <labelFor value="5a916"/>
           <text value="Total Shipping Weight"/>
         </properties>
       </component>
-      <component id="734c1" class="javax.swing.JLabel" binding="shippingCostLabel">
+      <component id="5b91e" class="javax.swing.JLabel" binding="orderTotalCostLabel">
         <constraints>
-          <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
+          <grid row="0" column="19" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.05"/>
         </constraints>
         <properties>
-          <horizontalAlignment value="10"/>
-          <horizontalTextPosition value="11"/>
-          <labelFor value="6621"/>
-          <text value="Total Shipping Cost"/>
+          <labelFor value="d363e"/>
+          <text value="Order Total Cost"/>
         </properties>
       </component>
       <component id="239bc" class="javax.swing.JButton" binding="calculateOrderButton">
         <constraints>
-          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
+          <grid row="3" column="15" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.1" weighty="0.2"/>
         </constraints>
         <properties>
           <text value="Calculate Order"/>
         </properties>
       </component>
-      <component id="797e6" class="javax.swing.JTextField" binding="searchTextField" default-binding="true">
+      <component id="5e3be" class="javax.swing.JButton" binding="saveUpdatedProductsAfterCalculateOrderButton">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-          <gridbag weightx="0.0" weighty="0.0"/>
+          <grid row="3" column="17" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.1" weighty="0.2"/>
         </constraints>
         <properties>
-          <text value=""/>
+          <text value="Save Products"/>
         </properties>
       </component>
-      <component id="2b71a" class="javax.swing.JLabel" binding="searchFieldLabel">
+      <hspacer id="e8912">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="20" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
+      </hspacer>
+      <component id="d363e" class="javax.swing.JTextField" binding="orderTotalCostTextField">
+        <constraints>
+          <grid row="1" column="19" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+          <gridbag weightx="0.25" weighty="0.1"/>
+        </constraints>
         <properties>
-          <labelFor value="797e6"/>
-          <text value="Search Field"/>
+          <columns value="10"/>
+          <editable value="true"/>
+          <horizontalAlignment value="4"/>
+          <text value="0"/>
+        </properties>
+      </component>
+      <hspacer id="70773">
+        <constraints>
+          <grid row="1" column="16" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="10ad8">
+        <constraints>
+          <grid row="1" column="18" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="a69e3">
+        <constraints>
+          <grid row="1" column="11" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="7072a">
+        <constraints>
+          <grid row="1" column="10" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="e2f15">
+        <constraints>
+          <grid row="1" column="7" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="cbf59">
+        <constraints>
+          <grid row="1" column="6" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="1e23f">
+        <constraints>
+          <grid row="1" column="9" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="a2933">
+        <constraints>
+          <grid row="1" column="8" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="4e5e8">
+        <constraints>
+          <grid row="1" column="5" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="10b04">
+        <constraints>
+          <grid row="1" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="b24a4">
+        <constraints>
+          <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="c874f">
+        <constraints>
+          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <component id="33c9b" class="javax.swing.JButton" binding="clearProductsButton">
+        <constraints>
+          <grid row="3" column="19" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.1" weighty="0.2"/>
+        </constraints>
+        <properties>
+          <text value="Clear Products"/>
         </properties>
       </component>
     </children>

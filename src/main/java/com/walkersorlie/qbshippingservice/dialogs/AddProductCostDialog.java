@@ -58,7 +58,7 @@ public class AddProductCostDialog extends JDialog {
      * Creates listeners for components
      */
     private void createListeners() {
-        // saves the product cost data, updates Prodcut in DB with new product_cost record, then closed the dialog
+        // saves the product cost data, updates Product in DB with new product_cost record, then closed the dialog
         saveButton.addActionListener(e -> {
             try {
                 String date = datePicker.getDate().toString();
@@ -68,9 +68,11 @@ public class AddProductCostDialog extends JDialog {
                 if (isCurrentPriceCheckbox.isSelected())
                     this.product.setCost(cost);
 
+                System.out.println("size productCosts: " + this.product.getProductCosts().size());
                 // create a product cost object from datePicker and costTextField
                 ProductCost productCost = new ProductCost(date, cost, product.getId());
                 this.product.addProductCost(productCost);
+                System.out.println("size productCosts: " + this.product.getProductCosts().size());
 
                 // pass the product and the product cost object just created to DB Update method
 //                this.product = productRepository.updateProductProductCost(product, productCost);

@@ -1,1 +1,3 @@
-# qb-shipping-service
+# This application helps me calculate shipping costs for purchase orders in QuickBooks
+
+### I wanted to be able to calculate how much shipping costs per item, which QuickBooks has no functionality for. It's easy to just add an equal amount of shipping cost to each item `(i.e. total_shipping_cost/total_items)`. However, this approach doesn't take into account that different items cost more to ship because different items have different weights and shipping is calculated by weight. I wanted to make an application that could give me proportional shipping costs per item based on their weight.
